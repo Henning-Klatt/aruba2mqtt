@@ -1,0 +1,3 @@
+[submodule "aos8-iot-server-example-websocket"]
+	path = aos8-iot-server-example-websocket
+	url = https://github.com/aruba/aos8-iot-server-example-websocket

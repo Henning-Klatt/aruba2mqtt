@@ -1,0 +1,2 @@
+websockets==11.0.3
+protobuf==4.24.3
