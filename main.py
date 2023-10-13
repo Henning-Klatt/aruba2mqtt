@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
 import logging
+import json
 from websockets.sync import server
 
 import aruba_iot_nb_pb2
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level="INFO")
 
-aruba_telemetry_proto = aruba_iot_nb_pb2.Telemetry
+aruba_telemetry_proto = aruba_iot_nb_pb2.Telemetry()
 def handle_aruba_telemetry_proto_mesg(mesg):
     try:
-        reqBody = aruba_telemetry_proto.ParseFromString(mesg)
-        print(reqBody)
+        reqBody = aruba_telemetry_proto.ParseFromString()
+
+        print(json.dumps(reqBody))
     except Exception as e:
         logging.error(e)
 
