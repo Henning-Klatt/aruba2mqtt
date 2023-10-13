@@ -11,7 +11,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level="INFO")
 aruba_telemetry_proto = aruba_iot_nb_pb2.Telemetry()
 def handle_aruba_telemetry_proto_mesg(mesg):
     try:
-        reqBody = aruba_telemetry_proto.ParseFromString()
+        reqBody = aruba_telemetry_proto.ParseFromString(mesg)
 
         print(json.dumps(reqBody))
     except Exception as e:
