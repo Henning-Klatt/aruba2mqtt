@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-import json
+import jsonpickle
 from websockets.sync import server
+import parse
 
 import aruba_iot_nb_pb2
 
@@ -11,9 +12,18 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level="INFO")
 aruba_telemetry_proto = aruba_iot_nb_pb2.Telemetry()
 def handle_aruba_telemetry_proto_mesg(mesg):
     try:
-        reqBody = aruba_telemetry_proto.ParseFromString(mesg)
+        aruba_telemetry_proto.ParseFromString(mesg)
+        logging.info(jsonpickle.encode(aruba_telemetry_proto.meta))
+        logging.info(jsonpickle.encode(aruba_telemetry_proto.reporter))
+        logging.info(jsonpickle.encode(aruba_telemetry_proto.bleData))
 
-        print(json.dumps(reqBody))
+        if(aruba_telemetry_proto.bleData.frameType == "adv_ind"):
+            result = parse.parse_payload("", -94, aruba_telemetry_proto.bleData.data)
+            print(result)
+        else:
+            print(aruba_telemetry_proto.bleData.frameType)
+
+
     except Exception as e:
         logging.error(e)
 
