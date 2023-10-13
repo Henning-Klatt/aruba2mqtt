@@ -69,9 +69,11 @@ def parse_payload(mac, rssi, payload):
 #data_string = "0201060d161c1802006c021000030c7a0a"
 #data_string = "02010611161c1802006d230200080303651a020144"
 #data_string = "0b094154435f453132314134"
+#data_string = "AgEGERYcGAIAjCMCbwcDAwAbAgE/"
 
 #packet = bytes(bytearray.fromhex(data_string))
+#packet = bytes(bytearray)
 
 
 #result = parse_payload("", -94, packet)
-#print(result)%
+#print(result)
