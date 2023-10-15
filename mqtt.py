@@ -6,10 +6,13 @@ def connect():
     client.connect("localhost")
 
 def publish(device):
-    client.publish("aruba2mqtt/" + device.name + "/mac", device.mac)
-    client.publish("aruba2mqtt/" + device.name + "/rssi", device.rssi)
-    client.publish("aruba2mqtt/" + device.name + "/temp", device.temp)
-    client.publish("aruba2mqtt/" + device.name + "/humi", device.humi)
+    data = {
+        "mac": device.mac,
+        "rssi": device.rssi,
+        "temperature": device.temp,
+        "humidity": device.humi
+    }
+    client.publish("aruba2mqtt/" + device.name + "/state", json.dumps(data))
 
 def send_discovery(device):
 
