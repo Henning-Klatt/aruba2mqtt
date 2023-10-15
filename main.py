@@ -1,33 +1,64 @@
 #!/usr/bin/env python
 
 import logging
-import jsonpickle
-from pprint import pprint
 from websockets.sync import server
-
-import aruba_iot_nb_ble_data_pb2
-import parse
 from google.protobuf.json_format import MessageToJson
 
+import aruba_iot_nb_ble_data_pb2
 import aruba_iot_nb_pb2
+
+from Device import ATC
+import mqtt
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level="INFO")
 
 aruba_telemetry_proto = aruba_iot_nb_pb2.Telemetry()
+
+# List of discovered BLE devices
+devices = []
+
+def getDevice(mac):
+    for device in devices:
+        if device.mac == mac:
+            return device
+    return None
+
 def handle_aruba_telemetry_proto_mesg(mesg):
     try:
         aruba_telemetry_proto.ParseFromString(mesg)
-        logging.info(MessageToJson(aruba_telemetry_proto))
+        logging.debug(MessageToJson(aruba_telemetry_proto))
 
-        logging.info("Reporter: %s (%s)", aruba_telemetry_proto.reporter.name, aruba_telemetry_proto.reporter.mac.hex(":"))
+        logging.debug("Reporter: %s (%s)", aruba_telemetry_proto.reporter.name, aruba_telemetry_proto.reporter.mac.hex(":"))
 
         for blepacket in aruba_telemetry_proto.bleData:
             mac = blepacket.mac.hex(":")
+
+            dev = getDevice(mac)
+            if dev is None:
+                return
+
             if blepacket.frameType == aruba_iot_nb_ble_data_pb2.BleFrameType.adv_ind:
-                result = parse.parse_payload(mac, blepacket.rssi, bytes(bytearray(blepacket.data)))
-                logging.info(result)
+                dev.parse_payload(bytes(bytearray(blepacket.data)))
+                dev.rssi = blepacket.rssi
+                if(dev.temp != None and dev.humi != None):
+                    logging.info("[%s] Temperature: %s °C | Humidity: %s %% | RSSI: %s", dev.name, dev.temp, dev.humi,
+                                 dev.rssi)
+                    mqtt.publish(dev)
             if blepacket.frameType == aruba_iot_nb_ble_data_pb2.BleFrameType.scan_rsp:
-                logging.info("Found Device: %s (%s)", blepacket.data.decode("utf-8"), mac)
+                logging.debug("Found Device: %s (%s)", blepacket.data.decode("utf-8"), mac)
+
+        for scanned_device in aruba_telemetry_proto.reported:
+            mac = scanned_device.mac.hex(":")
+            name = scanned_device.localName
+
+            if not any(device.mac == mac for device in devices):
+                dev = ATC(mac, name)
+                devices.append(dev)
+                logging.info("Added Device: %s (%s)", name, mac)
+                if dev.name.startswith("ATC_"):
+                    # Not working
+                    #mqtt.send_discovery(dev)
+                    pass
 
     except Exception as e:
         logging.error(e)
@@ -40,6 +71,7 @@ def receive(websocket):
             handle_aruba_telemetry_proto_mesg(message)
 
 def main():
+    mqtt.connect()
     with server.serve(receive, "0.0.0.0", 7443) as websock:
         websock.serve_forever()
 
