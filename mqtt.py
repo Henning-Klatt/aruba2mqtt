@@ -1,9 +1,22 @@
 import paho.mqtt.client as mqtt
 import json
+import logging
+import time
 
 client = mqtt.Client("aruba2mqtt")
 def connect():
-    client.connect("localhost")
+    reconnect_delay = 1
+    while True:
+        try:
+            client.connect("localhost")
+            logging.info("MQTT Connected successfully!")
+            return
+        except Exception as err:
+            logging.error("%s. MQTT Connecting failed.", err)
+            reconnect_delay *= 2
+            reconnect_delay = min(reconnect_delay, 60)
+            logging.info("Retrying in %d seconds...", reconnect_delay)
+            time.sleep(reconnect_delay)
 
 def publish(device):
     data = {
