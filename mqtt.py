@@ -10,7 +10,8 @@ def publish(device):
         "mac": device.mac,
         "rssi": device.rssi,
         "temperature": device.temp,
-        "humidity": device.humi
+        "humidity": device.humi,
+        "battery" : device.battery
     }
     client.publish("aruba2mqtt/" + device.name + "/state", json.dumps(data))
 

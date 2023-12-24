@@ -7,14 +7,11 @@ class ATC:
         self.rssi = 0
 
     def parse_payload(self, payload):
-        value_type = int.from_bytes(payload[0:1], "big", signed=False)
-        battery = int.from_bytes(payload[9:10], "big")
-        battery_volts = int.from_bytes(payload[10:12], "big") / 1000.0
-        counter = int.from_bytes(payload[12:13], "big")
         local_name = None
         uuid = None
         self.temp = None
         self.humi = None
+        self.battery = None
 
         if payload[0:3].hex() != '020106':
             logging.error("No BtHome Packet")
@@ -36,28 +33,41 @@ class ATC:
                 # Object length: 2
                 # unsigned integer
 
+                logging.debug("Got bthome packet: %s", payload);
+
                 # packet id
                 if payload[8:9].hex() == '00':
                     packet_id = int.from_bytes(payload[9:10], "big", signed=False)
 
-                    # 0x23
+                    # Object ID 0x23 - Temperature
                     if payload[10:11].hex() == '23':
                         # 001 00011
                         # Object length: 3
-                        # signed integer
+                        # 001 -> signed integer
 
                         # Temperature  	0.01
                         if payload[11:12].hex() == '02':
                             self.temp = int.from_bytes(payload[12:14], "little", signed=True) / 100
-                    # 0x03
+
+                    # Object ID 0x03 - humidity
                     if payload[14:15].hex() == '03':
                         # 000 00011
                         # Object length: 3
-                        # unsigned integer
+                        # 000 -> unsigned integer
 
                         # humidity 0.01
                         if payload[15:16].hex() == '03':
                             self.humi = int.from_bytes(payload[16:18], "little", signed=False) / 100
+
+                    # Object ID 0x02 - ? (battery percentage in my tests so far...)
+                    if payload[18:19].hex() == '02':
+                        # 000 00010
+                        # Object length: 2
+                        # 000 -> unsigned integer
+
+                        # battery 1 %
+                        if payload[19:20].hex() == '01':
+                            self.battery = int.from_bytes(payload[20:21], "little", signed=False)
 
         return {
             "payload_length": payload_length,
@@ -66,5 +76,6 @@ class ATC:
             "uuid": uuid,
             "packet_id": packet_id,
             "temp": self.temp,
-            "humi": self.humi
+            "humi": self.humi,
+            "battery": self.battery
         }
