@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  aruba2mqtt:
+    container_name: aruba2mqtt
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MQTT_HOST: "mqtt5"
+      LOGLEVEL: "info"
+    depends_on:
+      - mqtt5
+
+# mqtt5 eclipse-mosquitto
+  mqtt5:
+    image: eclipse-mosquitto
+    container_name: mqtt5
+    restart: on-failure:5
+    ports:
+      - "1883:1883" #default mqtt port
+      - "9001:9001" #default mqtt port for websockets
+    volumes:
+      - ./config:/mosquitto/config:rw
+      - ./data:/mosquitto/data:rw
+      - ./log:/mosquitto/log:rw
+
+# volumes for mapping data,config and log
+volumes:
+  config:
+  data:
+  log:
+
+networks:
+  default:
+    name: mqtt5-network

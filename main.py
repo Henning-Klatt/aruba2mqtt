@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import os
 from websockets.sync import server
 from google.protobuf.json_format import MessageToJson
 
@@ -10,7 +11,9 @@ import aruba_iot_nb_pb2
 from Device import ATC
 import mqtt
 
-logging.basicConfig(format='%(asctime)s - %(message)s', level="INFO")
+loglevel = os.environ.get('LOGLEVEL', 'info')
+mqtt_host = os.environ.get('MQTT_HOST', 'localhost')
+logging.basicConfig(format='%(asctime)s - %(message)s', level=loglevel.upper())
 
 aruba_telemetry_proto = aruba_iot_nb_pb2.Telemetry()
 
@@ -72,7 +75,7 @@ def receive(websocket):
             handle_aruba_telemetry_proto_mesg(message)
 
 def main():
-    mqtt.connect()
+    mqtt.connect(mqtt_host)
     with server.serve(receive, "0.0.0.0", 7443) as websock:
         websock.serve_forever()
 
