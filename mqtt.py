@@ -3,7 +3,9 @@ import json
 import logging
 import time
 
-client = mqtt.Client("aruba2mqtt")
+# ToDo: https://stackoverflow.com/a/77985329
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, "aruba2mqtt")
+
 def connect(mqtt_host):
     reconnect_delay = 1
     while True:

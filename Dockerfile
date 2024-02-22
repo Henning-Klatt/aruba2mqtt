@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM ubuntu:22.04
+#FROM ubuntu:22.04
+FROM python:3.11-bookworm
 
 RUN apt update && apt install -y python3-dev python3-pip unzip
 
@@ -11,7 +12,8 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
 
-ADD https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-linux-x86_64.zip protoc.zip
+#ADD https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-linux-x86_64.zip protoc.zip
+ADD https://github.com/protocolbuffers/protobuf/releases/download/v25.3/protoc-25.3-linux-aarch_64.zip protoc.zip
 RUN unzip protoc.zip
 RUN mv bin/protoc /usr/local/bin/protoc
 
